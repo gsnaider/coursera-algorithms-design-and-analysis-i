@@ -69,6 +69,7 @@ public class MinCutter {
 		
 	}
 	
+	//TODO
 	private int efficientKargerMinCut() {
 		List<Node> nodes = graph.getNodes();
 		List<Edge> edges = graph.getEdges();
@@ -85,6 +86,7 @@ public class MinCutter {
 			
 		}
 		
+		return 0;
 	}
 
 	private void removeSelfLoops(Set<Node> nodesSet, List<Edge> edges) {
