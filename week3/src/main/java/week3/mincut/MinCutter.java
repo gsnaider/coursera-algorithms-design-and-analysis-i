@@ -1,9 +1,10 @@
 package week3.mincut;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 import week3.graph.Edge;
@@ -37,7 +38,6 @@ public class MinCutter {
 		int iters = itersDouble.intValue();
 		for (int i = 0; i < iters; i++) {
 			int minCutCandidate = kargerMinCut();
-			System.out.println(i);
 			if(minCut == null || minCutCandidate < minCut){
 				System.out.println("Min Cut Candidate: " + minCutCandidate);
 				minCut = minCutCandidate;
@@ -46,57 +46,23 @@ public class MinCutter {
 		return minCut;
 	}
 	
-	//Very inefficient!!!
 	private int kargerMinCut() {
-
 		List<Set<Node>> nodeSets = createNodeSets();
 		List<Edge> edges = new ArrayList<Edge>();
 		edges.addAll(graph.getEdges());
 		int nodesRemaining = graph.getNodes().size();
-		
-		Random random = new Random();
-		
-		while (nodesRemaining > 2){
-			
-			int edgeIndex = random.nextInt(edges.size());
-			Edge edgeToRemove = edges.get(edgeIndex);
-			Set<Node> nodesSet = contractNodes(nodeSets, edgeToRemove.getNode1(), edgeToRemove.getNode2());
-			removeSelfLoops(nodesSet, edges);
-			nodesRemaining--;
+		Collections.shuffle(edges);
+		Iterator<Edge> edgeIterator = edges.iterator();
+		while (nodesRemaining > 2 && edgeIterator.hasNext()){
+			Edge edgeToRemove = edgeIterator.next();
+			if (!inSameSet(nodeSets, edgeToRemove.getNode1(), edgeToRemove.getNode2())){
+				contractNodes(nodeSets, edgeToRemove.getNode1(), edgeToRemove.getNode2());
+				nodesRemaining--;
+			}
 		}
 		
 		return countEdgesBetweenSets(nodeSets);
 		
-	}
-	
-	//TODO
-	private int efficientKargerMinCut() {
-		List<Node> nodes = graph.getNodes();
-		List<Edge> edges = graph.getEdges();
-		
-		Graph contractedGraph = new Graph(nodes.size());
-		contractedGraph.setEdges(edges);
-		contractedGraph.setNodes(nodes);
-		
-		int nodesRemaining = nodes.size();
-		Random random = new Random();
-		while (nodesRemaining > 2){
-			int edgeIndex = random.nextInt(edges.size());
-			Edge edgeToRemove = edges.get(edgeIndex);
-			
-		}
-		
-		return 0;
-	}
-
-	private void removeSelfLoops(Set<Node> nodesSet, List<Edge> edges) {
-		for (Node node : nodesSet){
-			for (Edge edge : node.getEdges()){
-				if (nodesSet.contains(edge.getNode1()) &&  nodesSet.contains(edge.getNode2())){
-					edges.remove(edge);
-				}
-			}
-		}
 	}
 
 	private int countEdgesBetweenSets(List<Set<Node>> nodeSets) {
@@ -114,18 +80,11 @@ public class MinCutter {
 		return node1Set.contains(node2);
 	}
 
-	private Set<Node> contractNodes(List<Set<Node>> nodeSets, Node node1, Node node2) {
+	private void contractNodes(List<Set<Node>> nodeSets, Node node1, Node node2) {
 		Set<Node> node1Set = findNodeSet(nodeSets, node1);
 		Set<Node> node2Set = findNodeSet(nodeSets, node2);
-		if (node1Set.size() < node2Set.size()){
-			node2Set.addAll(node1Set);
-			node1Set.clear();
-			return node2Set;
-		} else {
-			node1Set.addAll(node2Set);
-			node2Set.clear();
-			return node1Set;
-		}
+		node1Set.addAll(node2Set);
+		nodeSets.remove(node2Set);
 	}
 
 	private Set<Node> findNodeSet(List<Set<Node>> nodeSets, Node node1) {
